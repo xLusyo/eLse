@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "876545613658",
+    "project_id": "else-revamp",
+    "storage_bucket": "else-revamp.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:876545613658:android:283ae7d410c492970fdd63",
+        "android_client_info": {
+          "package_name": "com.example.else_revamp"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "876545613658-fv4gpk9n60h7hvo2aebs8gh9lruhibtf.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC5sz8gwB80vL-okkhRgM-6p3QWWZSw7t4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "876545613658-fv4gpk9n60h7hvo2aebs8gh9lruhibtf.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
