@@ -1,16 +1,12 @@
-# else_revamp
+# eLse
 
-A new Flutter project.
+Thesis Final Project
 
-## Getting Started
+Adviser: Eder MIT
 
-This project is a starting point for a Flutter application.
+## Developers
 
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+</> Danielle Anne De Guzman <br>
+</> Mill Christian Ayudtud <br>
+</> Ezekiel Jones Caseres <br>
+</> Christian Baloncio <br>
