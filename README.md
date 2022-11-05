@@ -10,3 +10,4 @@ Adviser: Eder MIT
 </> Mill Christian Ayudtud <br>
 </> Ezekiel Jones Caseres <br>
 </> Christian Baloncio <br>
+</> Ian Jeferson Salac<br>
