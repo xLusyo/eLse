@@ -8,13 +8,13 @@ class HowTo extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color.fromARGB(250, 250, 95, 95),
+      backgroundColor: const Color(0xffC93542),
       appBar: AppBar(
         title: Text('How It Works',
             style: GoogleFonts.fanwoodText(
                 color: const Color.fromARGB(250, 52, 73, 94), fontSize: 30)),
         elevation: 0,
-        backgroundColor: const Color.fromARGB(250, 250, 95, 95),
+        backgroundColor: const Color(0xffC93542),
         leading: IconButton(
             onPressed: () {
               Get.back();

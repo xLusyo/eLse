@@ -1,3 +1,7 @@
+import 'dart:async';
+
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:else_revamp/screens/community-map.dart';
 import 'package:else_revamp/screens/cpr.dart';
 import 'package:else_revamp/screens/faq.dart';
 import 'package:else_revamp/screens/guideline.dart';
@@ -20,14 +24,19 @@ void main() async {
   runApp(const MyApp());
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
+class MyApp extends StatefulWidget {
+  const MyApp({super.key});
 
+  @override
+  _MyAppState createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
     return GetMaterialApp(
       debugShowCheckedModeBanner: false,
-      home: UserSession(),
+      home: const UserSession(),
       getPages: [
         GetPage(name: '/', page: () => const LogIn()),
         GetPage(name: '/signup', page: () => const SignUp()),
@@ -39,6 +48,7 @@ class MyApp extends StatelessWidget {
         GetPage(name: '/faq', page: () => const FAQ()),
         GetPage(name: '/how-it-works', page: () => const HowTo()),
         GetPage(name: '/guide', page: () => const Guidelines()),
+        GetPage(name: '/community', page: () => const Community()),
       ],
     );
   }
@@ -48,6 +58,8 @@ class MyApp extends StatelessWidget {
 //Shows specific Home screen if user already signed-in
 //Shows Loading screen transition to login if there is no user
 class UserSession extends StatelessWidget {
+  const UserSession({super.key});
+
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<User?>(

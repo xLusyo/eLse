@@ -2,9 +2,12 @@ import 'dart:async';
 import 'dart:collection';
 import 'dart:math';
 import 'dart:developer' as dev;
-
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:url_launcher/url_launcher.dart' as UrlLauncher;
 import 'package:audioplayers/audioplayers.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
@@ -192,6 +195,9 @@ class CprContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isRunning = context.select<CprProvider, bool>(
+      (value) => value.isWatchRunning,
+    );
     return Scaffold(
       backgroundColor: const Color(0xFFF7ECEC),
       appBar: AppBar(
@@ -199,32 +205,61 @@ class CprContent extends StatelessWidget {
         backgroundColor: const Color(0xFFF7ECEC),
         leading: IconButton(
           onPressed: () {
-            Get.back();
+            if (!isRunning) {
+              Get.back();
+            } else {
+              showDialog(
+                  context: context,
+                  builder: (context) {
+                    return const AlertDialog(
+                        icon: Icon(Icons.info, color: Colors.red),
+                        title: Text('Note!'),
+                        content:
+                            Text('In order to exit please stop the timer'));
+                  });
+            }
           },
           icon: Image.asset('assets/images/icons8-left-96 1.png'),
         ),
       ),
-      body: Column(
-        children: [
-          const SizedBox(height: 40),
-          const TimerView(),
-          Padding(
-            padding: const EdgeInsets.only(
-              left: 40,
-              right: 40,
-              top: 30,
-              bottom: 15,
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            //const SizedBox(height: 40),
+            Container(
+              margin: const EdgeInsets.only(left: 30, right: 15),
+              child: Row(
+                children: const [
+                  TimerView(),
+                  SizedBox(width: 100),
+                  SuccessCount()
+                ],
+              ),
             ),
-            child: Image.asset(
-              'assets/images/cpr.gif',
-              fit: BoxFit.cover,
-              colorBlendMode: BlendMode.overlay,
+            Padding(
+              padding: const EdgeInsets.only(
+                left: 40,
+                right: 40,
+                top: 30,
+                bottom: 15,
+              ),
+              child: Image.asset(
+                'assets/images/cpr-unscreen.gif',
+                fit: BoxFit.cover,
+                colorBlendMode: BlendMode.overlay,
+              ),
             ),
-          ),
-          const PushStatusText(),
-          const SizedBox(height: 10),
-          const StartStopButton(),
-        ],
+            const PushStatusText(),
+            const SizedBox(height: 10),
+            const StartStopButton(),
+            const SizedBox(height: 10),
+            const Padding(
+              padding: EdgeInsets.only(bottom: 50.0, right: 30),
+              child: Align(
+                  alignment: Alignment.bottomRight, child: CallEmergency()),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -259,8 +294,72 @@ class TimerView extends StatelessWidget {
   }
 }
 
-class StartStopButton extends StatelessWidget {
+class SuccessCount extends StatelessWidget {
+  const SuccessCount({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        SizedBox(
+          height: 30,
+          width: 30,
+          child: Image.asset('assets/images/icons8-check-64.png'),
+        ),
+        Text(
+          '1',
+          style: GoogleFonts.fanwoodText(
+            color: const Color(0xFFCD5F5F),
+            fontSize: 50,
+          ),
+        )
+      ],
+    );
+  }
+}
+
+class StartStopButton extends StatefulWidget {
   const StartStopButton({Key? key}) : super(key: key);
+
+  @override
+  _StartStopButtonState createState() => _StartStopButtonState();
+}
+
+class _StartStopButtonState extends State<StatefulWidget> {
+  var latitude, longitude;
+  late String emergencyID = '';
+
+  Future getuserLocation() async {
+    //To check if location service is enabled
+    //if disabled, prompt the user to turn it on
+    bool isEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!isEnabled) {
+      //return Future.error('Location service is disabled');
+      return await Geolocator.requestPermission();
+    }
+
+    //verify or check permissions
+    //if permissions are denied re-state checking of permissions
+    LocationPermission permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) {
+        return Future.error('Permission denied by user');
+      }
+    }
+    if (permission == LocationPermission.deniedForever) {
+      return Future.error(
+          'Unable to share location, permission is permanently denied');
+    }
+
+    return await Geolocator.getCurrentPosition();
+  }
+
+  @override
+  void initState() {
+    getuserLocation();
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -268,23 +367,55 @@ class StartStopButton extends StatelessWidget {
       (value) => value.isWatchRunning,
     );
     if (!isRunning) {
-      return TextButton(
-        onPressed: () => context.read<CprProvider>().startWatch(),
+      return ElevatedButton(
+        style: ElevatedButton.styleFrom(
+            backgroundColor: const Color.fromARGB(255, 52, 73, 94)),
+        onPressed: () async {
+          context.read<CprProvider>().startWatch();
+          String useruid = FirebaseAuth.instance.currentUser!.uid;
+          Position coordinates = await Geolocator.getCurrentPosition();
+          await FirebaseFirestore.instance.collection('emergency').add({
+            'latitude': coordinates.latitude,
+            'longitude': coordinates.longitude,
+            'active': true,
+            'used_id': useruid,
+          }).then((value) async {
+            print('location id: ${value.id}');
+            setState(() {
+              emergencyID = value.id;
+            });
+            await FirebaseFirestore.instance
+                .collection('emergency')
+                .doc(emergencyID)
+                .set({'uid': emergencyID}, SetOptions(merge: true));
+          });
+          print(
+              'Emergency Location: ${coordinates.latitude}, ${coordinates.longitude}');
+        },
         child: Text(
           'Start',
           style: GoogleFonts.fanwoodText(
-            color: const Color.fromARGB(255, 52, 73, 94),
+            color: Colors.white,
             fontSize: 34,
           ),
         ),
       );
     }
-    return TextButton(
-      onPressed: () => context.read<CprProvider>().stopWatch(),
+    return ElevatedButton(
+      style: ElevatedButton.styleFrom(backgroundColor: const Color(0xffC93542)),
+      onPressed: () async {
+        context.read<CprProvider>().stopWatch();
+        await FirebaseFirestore.instance
+            .collection('emergency')
+            .doc(emergencyID)
+            .set({
+          'active': false,
+        }, SetOptions(merge: true));
+      },
       child: Text(
         'Stop',
         style: GoogleFonts.fanwoodText(
-          color: const Color(0xFFCD5F5F),
+          color: Colors.white,
           fontSize: 34,
         ),
       ),
@@ -316,5 +447,45 @@ class PushStatusText extends StatelessWidget {
       );
     }
     return const SizedBox(height: 0);
+  }
+}
+
+//Emergency Dial that pops up whenever CPR is started
+//shown at the bottom right of the screen represented with
+//a phone dial icon image
+class CallEmergency extends StatelessWidget {
+  const CallEmergency({super.key});
+
+  // function that navigates the user outside the app
+  // then dials 911 and ready for calling
+  dialCall() async {
+    final Uri launchUri = Uri(
+      scheme: 'tel',
+      path: '911',
+    );
+    await UrlLauncher.launchUrl(launchUri);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isRunning = context.select<CprProvider, bool>(
+      (value) => value.isWatchRunning,
+    );
+    if (!isRunning) {
+      return const SizedBox();
+    }
+    return InkWell(
+      onTap: () {
+        dialCall();
+      },
+      child: Container(
+        padding: const EdgeInsets.all(10),
+        decoration: const BoxDecoration(boxShadow: [
+          BoxShadow(offset: Offset.zero, blurRadius: 3, spreadRadius: -1)
+        ], shape: BoxShape.circle, color: Colors.lightGreen),
+        child: Image.asset('assets/images/icons8-ringer-volume-50.png',
+            height: 50, width: 50),
+      ),
+    );
   }
 }

@@ -59,7 +59,7 @@ class _ProfileState extends State<Profile> {
       backgroundColor: Color.fromARGB(250, 246, 236, 236),
       appBar: AppBar(
         elevation: 0,
-        backgroundColor: const Color.fromARGB(250, 205, 95, 95),
+        backgroundColor: const Color(0xffC93542),
         leading: IconButton(
             onPressed: () {
               //Get.back();
@@ -76,7 +76,7 @@ class _ProfileState extends State<Profile> {
                 Container(
                   height: 240,
                   decoration: BoxDecoration(
-                    color: const Color.fromARGB(250, 205, 95, 95),
+                    color: const Color(0xffC93542),
                     borderRadius: BorderRadius.vertical(
                         bottom: Radius.elliptical(
                             MediaQuery.of(context).size.width, 100.0)),

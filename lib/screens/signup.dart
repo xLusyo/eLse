@@ -47,7 +47,7 @@ class _SignUpState extends State<SignUp> {
               height: 490,
               width: MediaQuery.of(context).size.width,
               decoration: BoxDecoration(
-                  color: const Color.fromARGB(250, 205, 95, 95),
+                  color: const Color(0xffC93542),
                   borderRadius: BorderRadius.circular(25)),
               child: Column(
                 children: <Widget>[
@@ -141,8 +141,7 @@ class _SignUpState extends State<SignUp> {
                                 hintStyle: GoogleFonts.fanwoodText()),
                             onTap: () async {
                               DateTime? date = DateTime(1900);
-                              FocusScope.of(context)
-                                  .requestFocus(new FocusNode());
+                              FocusScope.of(context).requestFocus(FocusNode());
                               date = await showDatePicker(
                                   context: context,
                                   initialDate: DateTime.now(),
@@ -160,10 +159,9 @@ class _SignUpState extends State<SignUp> {
                         Expanded(
                           child: TextFormField(
                             controller: pnumberController,
-                            maxLength: 11,
                             keyboardType: TextInputType.phone,
                             decoration: InputDecoration(
-                                contentPadding: EdgeInsets.all(5),
+                                contentPadding: const EdgeInsets.all(5),
                                 fillColor: Colors.white,
                                 filled: true,
                                 border: const OutlineInputBorder(
@@ -185,7 +183,7 @@ class _SignUpState extends State<SignUp> {
                             obscureText: true,
                             controller: passwordController,
                             decoration: InputDecoration(
-                                contentPadding: EdgeInsets.all(5),
+                                contentPadding: const EdgeInsets.all(5),
                                 fillColor: Colors.white,
                                 filled: true,
                                 border: const OutlineInputBorder(
@@ -217,7 +215,7 @@ class _SignUpState extends State<SignUp> {
                     padding: const EdgeInsets.only(top: 50),
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        primary: const Color.fromARGB(250, 52, 73, 94),
+                        primary: const Color(0xff34495E),
                         minimumSize: const Size(350, 50),
                         shape: const RoundedRectangleBorder(
                           borderRadius: BorderRadius.all(Radius.circular(20)),
@@ -258,6 +256,29 @@ class _SignUpState extends State<SignUp> {
                                 return AlertDialog(
                                   title: Text(
                                     'Complete the fields to proceed',
+                                    style: GoogleFonts.fanwoodText(
+                                        color: Colors.black, fontSize: 30),
+                                  ),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () {
+                                        Navigator.pop(context);
+                                      },
+                                      child: Text(
+                                        'CLOSE',
+                                        style: GoogleFonts.fanwoodText(),
+                                      ),
+                                    )
+                                  ],
+                                );
+                              });
+                        } else if (pnumber.length != 11) {
+                          showDialog(
+                              context: context,
+                              builder: (context) {
+                                return AlertDialog(
+                                  title: Text(
+                                    'Max Length of Phone Number is 11',
                                     style: GoogleFonts.fanwoodText(
                                         color: Colors.black, fontSize: 30),
                                   ),

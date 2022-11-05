@@ -126,7 +126,7 @@ class _UpdateState extends State<Update> {
       backgroundColor: const Color.fromARGB(250, 246, 236, 236),
       appBar: AppBar(
         elevation: 0,
-        backgroundColor: const Color.fromARGB(250, 205, 95, 95),
+        backgroundColor: const Color(0xffC93542),
         leading: IconButton(
             onPressed: () {
               Get.offAndToNamed('/profile');
@@ -141,7 +141,7 @@ class _UpdateState extends State<Update> {
                 Container(
                   height: 240,
                   decoration: BoxDecoration(
-                    color: const Color.fromARGB(250, 205, 95, 95),
+                    color: const Color(0xffC93542),
                     borderRadius: BorderRadius.vertical(
                         bottom: Radius.elliptical(
                             MediaQuery.of(context).size.width, 100.0)),
@@ -326,7 +326,7 @@ class _UpdateState extends State<Update> {
                 children: <Widget>[
                   ElevatedButton(
                     style: ElevatedButton.styleFrom(
-                      primary: const Color.fromARGB(250, 205, 95, 95),
+                      primary: const Color(0xffC93542),
                       minimumSize: const Size(150, 40),
                       shape: const RoundedRectangleBorder(
                         borderRadius: BorderRadius.all(Radius.circular(20)),
