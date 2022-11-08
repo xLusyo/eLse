@@ -20,8 +20,11 @@ NumberFormat formatter = NumberFormat("00");
 
 class CprProvider extends ChangeNotifier {
   final Stopwatch stopwatch;
+  final Stopwatch countSuccessCpr;
   PushStatus _status;
   String currentTime;
+  //variable to hold the value of success cpr count
+  String currentSuccessCpr;
   int lastRegisteredHalfPush = 0;
   late StreamSubscription _subscription;
   double maxInEpoch = 0;
@@ -42,6 +45,7 @@ class CprProvider extends ChangeNotifier {
   final audioPlayer = AudioPlayer();
   late final Timer audioTimer;
   late final Timer countTimer;
+  late final Timer successCounter;
 
   double get duration =>
       timeBetweenHalfPushes.reduce((value, element) => value + element) /
@@ -54,12 +58,15 @@ class CprProvider extends ChangeNotifier {
     _subscription.cancel();
     audioTimer.cancel();
     countTimer.cancel();
+    successCounter.cancel();
   }
 
   CprProvider()
       : _status = PushStatus.notPushing,
         stopwatch = Stopwatch(),
+        countSuccessCpr = Stopwatch(),
         currentTime = "00:00",
+        currentSuccessCpr = '0',
         isWatchRunning = false {
     audioTimer = Timer.periodic(const Duration(seconds: 2), (_) {
       dev.log('Audio fired');
@@ -89,6 +96,18 @@ class CprProvider extends ChangeNotifier {
         notifyListeners();
       },
     );
+
+    //Customized timer for success CPR counter
+    successCounter = Timer.periodic(
+      const Duration(seconds: 1),
+      (timer) {
+        final currentSuccess = countSuccessCpr.elapsed;
+        final inSeconds = currentSuccess.inSeconds;
+        currentSuccessCpr = formatter.format(inSeconds);
+        notifyListeners();
+      },
+    );
+
     timeBetweenHalfPushes.addFirst(0);
     _subscription = userAccelerometerEvents.listen((event) {
       dev.log('New acc event, is watch running: $isWatchRunning');
@@ -133,15 +152,17 @@ class CprProvider extends ChangeNotifier {
       z = event.z;
       dev.log('duration: ${duration.toString()}');
       dev.log('last acceleration: ${lastMaxAccleration.toString()}');
+      //controls the behavior of success cpr timer to only increment when correct
+      //cpr execution is achieved
       if (duration > standardDuration) {
         _status = PushStatus.pushFast;
-        stopwatch.stop();
+        countSuccessCpr.stop();
       } else if (lastMaxAccleration < standardAcceleration) {
         _status = PushStatus.pushHard;
-        stopwatch.stop();
+        countSuccessCpr.stop();
       } else {
         _status = PushStatus.keepPushing;
-        stopwatch.start();
+        countSuccessCpr.start();
       }
       notifyListeners();
     });
@@ -165,11 +186,14 @@ class CprProvider extends ChangeNotifier {
 
   void startWatch() {
     stopwatch.start();
+    countSuccessCpr.start();
     isWatchRunning = true;
     notifyListeners();
   }
 
   void stopWatch() {
+    countSuccessCpr.stop();
+    countSuccessCpr.reset();
     stopwatch.stop();
     stopwatch.reset();
     isWatchRunning = false;
@@ -227,13 +251,16 @@ class CprContent extends StatelessWidget {
           children: [
             //const SizedBox(height: 40),
             Container(
-              margin: const EdgeInsets.only(left: 30, right: 15),
-              child: Row(
-                children: const [
-                  TimerView(),
-                  SizedBox(width: 100),
-                  SuccessCount()
-                ],
+              margin: const EdgeInsets.only(left: 30, right: 30),
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children: const [
+                    TimerView(),
+                    SizedBox(width: 50),
+                    SuccessCount()
+                  ],
+                ),
               ),
             ),
             Padding(
@@ -265,9 +292,14 @@ class CprContent extends StatelessWidget {
   }
 }
 
-class TimerView extends StatelessWidget {
+class TimerView extends StatefulWidget {
   const TimerView({Key? key}) : super(key: key);
 
+  @override
+  _TimerViewState createState() => _TimerViewState();
+}
+
+class _TimerViewState extends State<TimerView> {
   @override
   Widget build(BuildContext context) {
     final currentTime =
@@ -299,6 +331,9 @@ class SuccessCount extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final success = context.select<CprProvider, String>(
+      (value) => value.currentSuccessCpr,
+    );
     return Row(
       children: [
         SizedBox(
@@ -307,7 +342,7 @@ class SuccessCount extends StatelessWidget {
           child: Image.asset('assets/images/icons8-check-64.png'),
         ),
         Text(
-          '1',
+          success,
           style: GoogleFonts.fanwoodText(
             color: const Color(0xFFCD5F5F),
             fontSize: 50,
